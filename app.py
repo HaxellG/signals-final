@@ -535,11 +535,13 @@ elif selected_option == "Transformada de Fourier y Modulación de Señales":
             t2 = np.arange(0,10*T+(1/100*T), (1/100*T))
             portadora2 = carrier_amplitude * np.cos(w*t2)
             yt = x_t_filt2 * portadora
-            # Cálculo del espectro
+
+            pt=carrier_amplitude*np.cos(w*t)
             Y_w = np.fft.fft(yt)            # Transformada de Fourier de x(t)
             Y_w_cent = np.fft.fftshift(Y_w)  # Centramos el espectro
             Delta_f = 1 / (n * Delta_t)
-            w_p = np.linspace(-len(portadora)/2,len(portadora)/2,len(portadora))
+            w_p = np.linspace(-len(pt)/2,len(pt)/2,len(pt))
+            magnitud = np.abs(Y_w_cent) / n
 
 
             st.subheader("Gráfica de la portadora")
@@ -556,7 +558,7 @@ elif selected_option == "Transformada de Fourier y Modulación de Señales":
             st.subheader("Espectro Modulado")
 
             generate_continous_pyplot_graph(
-                f, np.abs(Y_w_cent) / np.max(np.abs(X_w_fil)),
+                w_p, np.abs(Y_w_cent) / np.max(np.abs(X_w_fil)),
                 "Espectro Modulado", 
                 "Frecuencia [Hz]", 
                 "Magnitud (dB)"
@@ -564,19 +566,14 @@ elif selected_option == "Transformada de Fourier y Modulación de Señales":
 
             st.subheader("Espectro Demodulado")
 
-            xtdem=yt*portadora
-            f = np.arange(-n / 2, n / 2) * Delta_f
+            xtdem=yt*pt
 
             # Cálculo del espectro
             X_wdem = np.fft.fft(xtdem)            # Transformada de Fourier de x(t)
             X_w_demcent = np.fft.fftshift(X_wdem)  # Centramos el espectro
             Delta_f = 1 / (n * Delta_t)
-            w_p = np.linspace(-len(portadora)/2,len(portadora)/2,len(portadora))
-            #magnitud = np.abs(X_w_cent) / np.max
             magnitud = np.abs(X_w_demcent) / n
-
-            XWrecuperada_corrida = np.fft.ifftshift(X_w_demcent)    # Corrimiento del espectro
-            x_t_filt3 = np.fft.ifft(XWrecuperada_corrida)       # Transformada inversa
+            f = np.arange(-len(xtdem)/2, len(xtdem)/2) * Delta_f
 
             generate_continous_pyplot_graph(
                 f, np.abs(X_w_demcent) / np.max(np.abs(X_w_demcent)),
@@ -585,11 +582,14 @@ elif selected_option == "Transformada de Fourier y Modulación de Señales":
                 "Magnitud (dB)"
             )
 
+            X_w_fil2 = X_w_demcent * fpb
             st.subheader("Espectro Recuperado")
             f = np.arange(-n / 2, n / 2) * Delta_f
             XWrecuperada= X_w_demcent*fpb
+            XWrecup = np.fft.ifftshift(X_w_fil2)    # Corrimiento del espectro
+            x_t_filt2= np.fft.ifft(XWrecup)       # Transformada inversa
             generate_continous_pyplot_graph(
-                f, np.abs(XWrecuperada) / np.max(np.abs(XWrecuperada)),
+                f, np.abs(X_w_fil) / np.max(np.abs(X_w_fil)),
                 "Espectro Recuperado", 
                 "Frecuencia [Hz]", 
                 "Magnitud (dB)"
@@ -603,7 +603,7 @@ elif selected_option == "Transformada de Fourier y Modulación de Señales":
                 <h5 style='text-align: left;color: {PURE_BLACK_COLOR};'>Audio recuperado</h5>
                 """, unsafe_allow_html=True
             )
-            st.audio(x_t_filt3, sample_rate=fs)
+            st.audio(x_t_filt2, sample_rate=fs)
     else:
         CSS_CUSTOM_ERROR_STYLES = build_custom_error('⚠️ Debe cargar un archivo .wav para continuar')
         st.markdown(CSS_CUSTOM_ERROR_STYLES, unsafe_allow_html=True)
