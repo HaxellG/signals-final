@@ -1,0 +1,8 @@
+numpy
+sympy
+scipy
+plotly
+streamlit
+pysoundfile
+bitstring
+matplotlib
